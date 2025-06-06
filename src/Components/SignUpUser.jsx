@@ -25,7 +25,7 @@ function SignUpUser() {
             <input 
             type="password"
             className='bg-green-200 p-2 rounded '
-            onChange={(e)=>setPassword()}
+            onChange={(e)=>setPassword(e.target.value)}
             />
 
             <button 
