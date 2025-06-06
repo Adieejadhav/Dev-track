@@ -1,15 +1,42 @@
 import React from 'react'
+import { useState } from 'react'
 
 function SignUpUser() {
+    const [email ,setEmail]= useState("");
+    const [password,setPassword]= useState("")
+
+
+
+
   return (
     <>
-        <div className='w-full h-full flex justify-center items-center '>
+        <div className='flex justify-center items-center h-screen gap-9'>
+
+
             <label for="input">email</label>
             <input 
             type="text"
-            className='bg-orange-300 p-0.5 mt-20 '
-        />
+            className='bg-green-200 p-2 rounded'
+            onChange={(e)=>setEmail(e.target.value)}
+            value={email}
+            />
+
+            <label for="input">password</label>
+            <input 
+            type="password"
+            className='bg-green-200 p-2 rounded '
+            onChange={(e)=>setPassword()}
+            />
+
+            <button 
+                className='bg-green-200 p-2 rounded border-2'
+                onClick={()=>handleSumit}
+            >
+                submit
+            </button>
+
         </div>
+        
     </>
   )
 }
