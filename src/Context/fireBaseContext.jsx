@@ -66,10 +66,6 @@ export const FirebaseProvider = ({ children }) => {
 
   // 🧠 Debug current state
   useEffect(() => {
-    // console.log("🧠 Firebase Context Updated →", {
-    //   user,
-    //   loading,
-    // });
   }, [user, loading]);
 
   return (
