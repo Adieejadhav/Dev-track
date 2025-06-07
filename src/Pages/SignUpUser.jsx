@@ -36,13 +36,13 @@ function SignUpUser() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center  px-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-4 bg-white shadow-lg rounded-xl p-8 m-15 w-full max-w-md"
         autoComplete="on"
       >
-        <h2 className="text-2xl font-bold text-center mb-2">Register</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">Register to DevTrack</h2>
 
         {firebaseError && <p className="text-red-600 text-sm text-center">{firebaseError}</p>}
 
