@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useFirebase } from '../Context/fireBaseContext';
 
@@ -6,6 +7,7 @@ function SignUpUser() {
   const firebase = useFirebase();
   const [loading, setLoading] = useState(false);
   const [firebaseError, setFirebaseError] = useState("");
+  const navigate = useNavigate();
 
   const {
     register,
@@ -35,6 +37,7 @@ function SignUpUser() {
       });
       console.log("User registered:", data);
       reset();
+      navigate("/dashboard");
     } catch (err) {
       setFirebaseError(err.message);
     } finally {
