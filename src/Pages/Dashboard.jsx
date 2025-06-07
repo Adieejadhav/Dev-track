@@ -1,19 +1,41 @@
 // src/Pages/Dashboard.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../Context/fireBaseContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../Firebase/fireBaseConfig';
 
 function Dashboard() {
   const firebase = useFirebase();
   const currentUser = firebase.user;
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setUserData(userSnap.data());
+        } else {
+          console.log('No such user data found');
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Welcome{currentUser?.displayName ? `, ${currentUser.displayName}` : ''} 👋
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Welcome{userData?.fullName ? `, ${userData.fullName}` : ''} 👋
         </h1>
 
-        <p className="text-gray-600 mb-6">Here’s your progress overview:</p>
+        <p className="text-gray-600 mb-4">
+          {userData?.primarySkills ? `Primary Skills: ${userData.primarySkills}` : 'Loading your skills...'}
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
@@ -33,7 +55,12 @@ function Dashboard() {
 
           <div className="bg-yellow-50 p-4 rounded-lg shadow-sm">
             <h2 className="text-lg font-semibold text-yellow-700 mb-2">🙋 Profile Snapshot</h2>
-            <p className="text-sm text-gray-700">View and manage your profile details.</p>
+            <p className="text-sm text-gray-700">
+              Username: {userData?.userName || '...'}<br />
+              Email: {currentUser?.email}<br />
+              Role: {userData?.role || '...'}<br />
+              GitHub: <a href={userData?.githubUrl} target="_blank" rel="noreferrer" className="text-blue-500 underline">{userData?.githubUrl}</a>
+            </p>
           </div>
         </div>
       </div>

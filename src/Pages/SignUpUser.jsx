@@ -25,7 +25,14 @@ function SignUpUser() {
     }
 
     try {
-      await firebase.register(data.email, data.password);
+      await firebase.register(data.email, data.password,{
+        "fullName": data.fullName,
+        "userName": data.userName,
+        "primarySkills": data.primarySkills,
+        "role": data.role,
+        "githubUrl": data.githubUrl,
+        "createdAt": new Date().toISOString()
+      });
       console.log("User registered:", data);
       reset();
     } catch (err) {
