@@ -1,19 +1,24 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useFirebase } from '../Context/fireBaseContext';
 
 function LoginPage() {
   const firebase = useFirebase();
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
 
   const onSubmit = async (data) => {
     try {
       await firebase.login(data.email, data.password);
+      reset()
+      navigate("/dashboard");
       console.log('Login successful');
       // TODO: Redirect to dashboard or homepage
     } catch (err) {
