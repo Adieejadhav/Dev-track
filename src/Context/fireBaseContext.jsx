@@ -64,6 +64,14 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
+  const updatePrimarySkills = async (uid, primarySkills) => {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, {
+      primarySkills,
+    });
+  };
+
+
   // In FirebaseProvider, add this function:
   const updateTrackedSkills = async (uid, trackedSkills) => {
     const userRef = doc(db, "users", uid);
@@ -119,7 +127,8 @@ export const FirebaseProvider = ({ children }) => {
         logout,
         getUserData,
         initializeTrackedSkills,
-        updateTrackedSkills
+        updateTrackedSkills,
+        updatePrimarySkills
       }}
     >
       {!loading && children}
