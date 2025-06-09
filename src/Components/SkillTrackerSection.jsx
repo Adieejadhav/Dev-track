@@ -11,11 +11,9 @@ const SkillTrackerSection = ({ primarySkills = [], trackedSkills = [], onUpdate 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Remove primary skills from tracked/allSkills initially
   useEffect(() => {
     const cleanedTracked = trackedSkills.filter(skill => !primarySkills.includes(skill));
-    const cleanedAll = [...new Set([...cleanedTracked])]; // Avoid primary duplication
-
+    const cleanedAll = [...new Set([...cleanedTracked])];
     setAllSkills(cleanedAll);
     setTracked(cleanedTracked);
     setNewlyAddedSkills([]);
@@ -79,105 +77,122 @@ const SkillTrackerSection = ({ primarySkills = [], trackedSkills = [], onUpdate 
       setMessage("❌ Failed to promote skill.");
     }
   };
+return (
+  <div className="bg-gradient-to-tr from-indigo-50 to-purple-100 shadow-2xl rounded-3xl p-8 w-full max-w-xl mx-auto border border-indigo-200">
 
-  return (
-    <div className="bg-white shadow-md rounded-2xl p-6 w-full max-w-xl mx-auto">
-      <h2 className="text-xl font-semibold text-slate-800 mb-4">Skill Tracker</h2>
+    <h2 className="text-2xl font-extrabold text-indigo-900 mb-8 text-center">
+      🛠️ Skill Tracker
+    </h2>
 
-      {/* Input */}
-      <div className="flex items-center gap-2 mb-4">
+    {/* Add Skill Section */}
+    <section className="mb-8 p-4 bg-white rounded-xl shadow-sm border border-indigo-100">
+      <div className="flex items-center gap-3">
         <input
           type="text"
           value={newSkill}
           onChange={(e) => setNewSkill(e.target.value)}
           placeholder="Add a new skill"
-          className="flex-1 px-3 py-2 border rounded-md text-sm"
+          className="flex-1 px-4 py-3 border border-indigo-300 rounded-xl text-indigo-900 placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
         />
         <button
           onClick={handleAddSkill}
-          className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700"
+          className="bg-purple-600 text-white px-5 py-3 rounded-xl hover:bg-purple-700 shadow-md transition"
+          aria-label="Add new skill"
         >
           Add Skill
         </button>
       </div>
+    </section>
 
-      {/* Tracked Skills */}
-      {allSkills.length > 0 ? (
-        <>
-          <h3 className="text-md font-semibold mb-2 text-gray-700">Currently Tracked Skills</h3>
-          <div className="flex flex-wrap gap-3 mb-6">
-            {allSkills.map((skill) => {
-              const isNew = newlyAddedSkills.includes(skill);
-              const isTracked = tracked.includes(skill);
+    {/* Tracked Skills & Save Section */}
+    {allSkills.length > 0 && (
+      <section className="mb-8 p-4 bg-white rounded-xl shadow-sm border border-indigo-100">
+        <h3 className="text-lg font-semibold mb-3 text-indigo-800 text-center">
+          Currently Tracked Skills
+        </h3>
+        <div className="flex flex-wrap justify-center gap-4 mb-6">
+          {allSkills.map((skill) => {
+            const isNew = newlyAddedSkills.includes(skill);
+            const isTracked = tracked.includes(skill);
 
-              return (
-                <button
-                  key={skill}
-                  onClick={() => toggleSkill(skill)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium border transition
-                    ${
-                      isNew
-                        ? isTracked
-                          ? "bg-yellow-400 text-white border-yellow-500"
-                          : "bg-yellow-100 text-yellow-800 border-yellow-300"
-                        : isTracked
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-gray-200 text-gray-700 border-gray-300"
-                    } hover:brightness-90`}
-                >
-                  {skill}
-                </button>
-              );
-            })}
-          </div>
+            const baseClasses = "px-5 py-2 rounded-full text-sm font-semibold border transition cursor-pointer select-none";
 
-          {/* Save Tracked */}
-          <div className="flex justify-center mb-6">
+            const classes = isNew
+              ? isTracked
+                ? `bg-yellow-400 text-white border-yellow-500 hover:brightness-110 shadow-lg`
+                : `bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200`
+              : isTracked
+              ? `bg-indigo-600 text-white border-indigo-600 hover:brightness-110 shadow-lg`
+              : `bg-indigo-100 text-indigo-800 border-indigo-300 hover:bg-indigo-200`;
+
+            return (
+              <button
+                key={skill}
+                onClick={() => toggleSkill(skill)}
+                className={`${baseClasses} ${classes}`}
+              >
+                {skill}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={saveTrackedSkills}
+            disabled={loading}
+            className="bg-indigo-700 text-white px-6 py-3 rounded-xl hover:bg-indigo-800 disabled:opacity-50 shadow-md transition"
+          >
+            {loading ? "Saving..." : "Save Tracked Skills"}
+          </button>
+        </div>
+      </section>
+    )}
+
+    {/* Promote to Primary Section */}
+    {tracked.length > 0 && (
+      <section className="p-4 bg-purple-50 rounded-xl shadow-inner border border-purple-200">
+        <h3 className="text-lg font-semibold mb-3 text-purple-800 text-center">
+          Promote to Primary Skills
+        </h3>
+        <div className="flex flex-wrap justify-center gap-4">
+          {tracked.map(skill => (
             <button
-              onClick={saveTrackedSkills}
-              disabled={loading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              key={skill}
+              onClick={() => promoteSkill(skill)}
+              className="bg-purple-200 text-purple-900 px-5 py-2 rounded-full border border-purple-400 hover:bg-purple-300 shadow-sm transition"
             >
-              {loading ? "Saving..." : "Save Tracked Skills"}
+              {skill} ➕ Promote
             </button>
-          </div>
+          ))}
+        </div>
+      </section>
+    )}
 
-          {/* Promote to Primary */}
-          <div className="mt-6">
-            <h3 className="text-md font-semibold mb-2 text-purple-700">Promote to Primary Skills</h3>
-            <div className="flex flex-wrap gap-3">
-              {tracked.map(skill => (
-                <button
-                  key={skill}
-                  onClick={() => promoteSkill(skill)}
-                  className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full border border-purple-300 hover:bg-purple-200"
-                >
-                  {skill} ➕ Promote
-                </button>
-              ))}
-            </div>
-          </div>
+    {/* Message */}
+    {message && (
+      <p
+        className={`mt-6 text-center text-sm ${
+          message.startsWith("✅") || message.startsWith("🎉")
+            ? "text-green-700"
+            : message.startsWith("❌")
+            ? "text-red-600"
+            : "text-yellow-700"
+        }`}
+      >
+        {message}
+      </p>
+    )}
 
-          {/* Message */}
-          {message && (
-            <p
-              className={`mt-4 text-sm text-center ${
-                message.startsWith("✅") || message.startsWith("🎉")
-                  ? "text-green-600"
-                  : message.startsWith("❌")
-                  ? "text-red-600"
-                  : "text-yellow-600"
-              }`}
-            >
-              {message}
-            </p>
-          )}
-        </>
-      ) : (
-        <p className="text-gray-500">No tracked skills yet. Add one above.</p>
-      )}
-    </div>
-  );
+    {/* No tracked skills message */}
+    {allSkills.length === 0 && (
+      <p className="text-indigo-400 text-center italic mt-8">
+        No tracked skills yet. Add one above.
+      </p>
+    )}
+  </div>
+);
+
 };
 
 export default SkillTrackerSection;
