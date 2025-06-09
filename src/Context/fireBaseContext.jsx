@@ -64,6 +64,13 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
+  // In FirebaseProvider, add this function:
+  const updateTrackedSkills = async (uid, trackedSkills) => {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, { trackedSkills });
+  };
+
+
   // Fetch full user profile data from Firestore
   const getUserData = async (uid) => {
     if (!uid) return null;
@@ -112,6 +119,7 @@ export const FirebaseProvider = ({ children }) => {
         logout,
         getUserData,
         initializeTrackedSkills,
+        updateTrackedSkills
       }}
     >
       {!loading && children}

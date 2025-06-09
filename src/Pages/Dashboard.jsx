@@ -10,20 +10,20 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const userRef = doc(db, "users", firebase.user.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          setUserData(userSnap.data());
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
+  const fetchProfile = async () => {
+    try {
+      const userRef = doc(db, "users", firebase.user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setUserData(userSnap.data());
       }
-    };
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
 
     if (firebase.user?.uid) {
       fetchProfile();
@@ -44,7 +44,15 @@ const Dashboard = () => {
 
       <div className="flex flex-col gap-6 items-center">
         <ProfileSnapshot userData={userData} />
-        <SkillTrackerSection primarySkills={userData.primarySkills || []} />
+        <SkillTrackerSection
+  key={JSON.stringify(userData.trackedSkills)} // 🔥 This forces re-render
+  primarySkills={userData.primarySkills || []}
+  trackedSkills={userData.trackedSkills || []}
+  onUpdate={fetchProfile}
+/>
+
+
+
       </div>
     </div>
   );
