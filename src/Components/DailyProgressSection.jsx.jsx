@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState ,useEffect } from "react";
 import { useFirebase } from "../Context/fireBaseContext";
-import { saveDailyNote } from "../Context/dailyProgressUtils";
+import { saveDailyNote ,fetchDailyNotes } from "../Context/dailyProgressUtils";
 
 
 const DailyProgressSection = () => {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [entries, setEntries] = useState({});
   const firebase = useFirebase();
   const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd format
 
@@ -29,6 +30,23 @@ const DailyProgressSection = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+  const loadEntries = async () => {
+    try {
+      const user = firebase.user;
+      if (!user) return;
+
+      const data = await fetchDailyNotes(user.uid);
+      setEntries(data);
+    } catch (err) {
+      console.error("Failed to load notes:", err);
+    }
+  };
+
+  loadEntries();
+}, [firebase.user]);
+
 
 
   return (
@@ -75,7 +93,21 @@ const DailyProgressSection = () => {
       {/* Past Entries - Placeholder */}
       <div className="mt-8 max-h-64 overflow-y-auto bg-white rounded-lg shadow-inner p-4">
         <h3 className="text-lg font-semibold text-purple-700 mb-3">Past Entries</h3>
-        <p className="text-sm text-purple-600 italic text-center">No entries yet.</p>
+        {Object.keys(entries).length === 0 ? (
+          <p className="text-sm text-purple-600 italic text-center">No entries yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {Object.entries(entries)
+              .sort((a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp))
+              .map(([date, entry]) => (
+                <li key={date} className="bg-purple-50 rounded-lg p-3 shadow">
+                  <p className="text-sm font-mono text-purple-700 mb-1">{date}</p>
+                  <p className="text-gray-800 text-sm">{entry.note}</p>
+                </li>
+              ))}
+          </ul>
+        )}
+
       </div>
 
       {/* Stats Section - Placeholder */}
