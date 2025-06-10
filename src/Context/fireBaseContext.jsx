@@ -8,6 +8,15 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  Timestamp,
+} from "firebase/firestore";
 
 const FirebaseContext = createContext();
 
