@@ -1,8 +1,35 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useFirebase } from "../Context/fireBaseContext";
+import { saveDailyNote } from "../Context/dailyProgressUtils";
+
 
 const DailyProgressSection = () => {
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const firebase = useFirebase();
   const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd format
+
+
+  const handleSaveNote = async () => {
+    if (!note.trim()) return;
+    setLoading(true);
+
+    try {
+      const user = firebase.user;
+      if (!user) throw new Error("User not authenticated");
+
+      await saveDailyNote(user.uid, today, note.trim());
+
+      alert("Note saved!");
+      setNote("");
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to save note.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-red-100 rounded-2xl p-6 shadow-lg max-w-xl mx-auto">
@@ -33,15 +60,17 @@ const DailyProgressSection = () => {
       {/* Save Button */}
       <button
         type="button"
-        disabled={!note.trim()}
+        onClick={handleSaveNote}
+        disabled={!note.trim() || loading}
         className={`w-full py-3 rounded-lg font-semibold text-white transition ${
-          note.trim()
+          note.trim() && !loading
             ? "bg-purple-600 hover:bg-purple-700 active:bg-purple-800"
             : "bg-purple-300 cursor-not-allowed"
         }`}
       >
-        Save Today's Note
+        {loading ? "Saving..." : "Save Today's Note"}
       </button>
+
 
       {/* Past Entries - Placeholder */}
       <div className="mt-8 max-h-64 overflow-y-auto bg-white rounded-lg shadow-inner p-4">

@@ -1,25 +1,48 @@
-import { collection, query, where, getDocs, addDoc, updateDoc, Timestamp } from "firebase/firestore";
-import { db } from "./fireBaseConfig";
+// src/Utils/dailyProgressUtils.jsx
+import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
+import { db } from "../Firebase/fireBaseConfig";
 
-// Save or update today's note
-export const saveDailyNote = async (uid, note) => {
-  const today = new Date().toISOString().slice(0, 10);
-  const progressRef = collection(db, "users", uid, "dailyProgress");
+// Save today's note
+export const saveDailyNote = async (uid, date, note) => {
+  const docRef = doc(db, "dailyProgress", uid);
 
-  const q = query(progressRef, where("date", "==", today));
-  const snapshot = await getDocs(q);
+  await setDoc(
+    docRef,
+    {
+      entries: {
+        [date]: {
+          note,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    },
+    { merge: true }
+  );
+};
 
-  if (!snapshot.empty) {
-    const docRef = snapshot.docs[0].ref;
-    await updateDoc(docRef, {
-      note,
-      timestamp: Timestamp.now(),
-    });
-  } else {
-    await addDoc(progressRef, {
-      note,
-      date: today,
-      timestamp: Timestamp.now(),
-    });
+// Fetch all entries for a user
+export const fetchDailyNotes = async (uid) => {
+  const docRef = doc(db, "dailyProgress", uid);
+  const snapshot = await getDoc(docRef);
+  if (snapshot.exists()) {
+    return snapshot.data().entries || {};
   }
+  return {};
+};
+
+// Delete a note by date
+export const deleteDailyNote = async (uid, date) => {
+  const docRef = doc(db, "dailyProgress", uid);
+  await updateDoc(docRef, {
+    [`entries.${date}`]: deleteField(),
+  });
+};
+
+// Update a note by date
+export const updateDailyNote = async (uid, date, newNote) => {
+  const docRef = doc(db, "dailyProgress", uid);
+  await updateDoc(docRef, {
+    [`entries.${date}.note`]: newNote,
+    [`entries.${date}.timestamp`]: new Date().toISOString(),
+  });
 };
