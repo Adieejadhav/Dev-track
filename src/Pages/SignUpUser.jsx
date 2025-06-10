@@ -26,162 +26,163 @@ function SignUpUser() {
       return;
     }
 
-    // Convert skills to array, trimming each one
     const skillsArray = data.primarySkills
       .split(",")
-      .map(skill => skill.trim())
-      .filter(skill => skill.length > 0); // remove empty entries
+      .map((skill) => skill.trim())
+      .filter((skill) => skill.length > 0);
 
     try {
       await firebase.register(data.email, data.password, {
         fullName: data.fullName,
         userName: data.userName,
-        primarySkills: skillsArray,  // Upload array to Firestore
+        primarySkills: skillsArray,
         role: data.role,
         githubUrl: data.githubUrl,
         createdAt: new Date().toISOString(),
       });
 
-      console.log("User registered:", {
-        ...data,
-        primarySkills: skillsArray,
-      });
-
       reset();
       navigate("/dashboard");
-
     } catch (err) {
-      setFirebaseError(err.message);
+      setFirebaseError("Registration failed. Please check your details.");
     } finally {
       setLoading(false);
     }
-};
-
+  };
 
   const inputClass = (fieldName) =>
-    `input-field ${errors[fieldName] ? "border-red-500" : "border-gray-300"}`;
+    `w-full px-4 py-3 rounded-xl border text-sm bg-white/90 backdrop-blur-md focus:outline-none focus:ring-2 ${
+      errors[fieldName] ? "border-red-500 focus:ring-red-300" : "border-gray-300 focus:ring-indigo-400"
+    }`;
 
-  // Combine all error messages into a single string
   const getCombinedErrorMessage = () => {
-    // Get all error messages in the formState.errors object
-    const allErrors = Object.values(errors).map((error) => error.message);
-    if (allErrors.length === 0) return null;
-    // Return the first error message or you can join all with commas or line breaks
-    return allErrors[0];
+    const allErrors = Object.values(errors).map((e) => e.message);
+    return allErrors.length ? allErrors[0] : null;
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-50 px-4 py-12">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 bg-white shadow-lg rounded-xl p-8 m-15 w-full max-w-md"
-        autoComplete="on"
+        className="w-full max-w-lg bg-white/90 backdrop-blur-xl border border-gray-200 shadow-xl rounded-2xl px-6 sm:px-8 py-8 sm:py-10 space-y-6"
         noValidate
       >
-        <h2 className="text-2xl font-bold text-center mb-2">Register to DevTrack</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-center text-indigo-700">
+          Create your DevTrack Account
+        </h2>
 
-        {/* General Firebase error at top */}
         {firebaseError && (
-          <p className="text-red-600 text-sm text-center">{firebaseError}</p>
+          <p className="text-red-600 text-sm text-center font-medium">{firebaseError}</p>
         )}
 
-        {/* Your inputs with dynamic red border on error */}
-        <label className="text-sm font-medium">Full Name</label>
-        <input
-          type="text"
-          autoComplete="name"
-          placeholder="Enter your Fullname"
-          {...register("fullName", { required: "Full Name is required" })}
-          className={inputClass("fullName")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Full Name</label>
+          <input
+            type="text"
+            autoComplete="name"
+            {...register("fullName", { required: "Full Name is required" })}
+            className={inputClass("fullName")}
+            placeholder="Your full name"
+          />
+        </div>
 
-        <label className="text-sm font-medium">User Name</label>
-        <input
-          type="text"
-          autoComplete="username"
-          placeholder="Enter Username for the profile"
-          {...register("userName", {
-            required: "User Name is required",
-            minLength: { value: 3, message: "Minimum 3 characters" },
-          })}
-          className={inputClass("userName")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">User Name</label>
+          <input
+            type="text"
+            autoComplete="username"
+            {...register("userName", {
+              required: "User Name is required",
+              minLength: { value: 3, message: "Minimum 3 characters" },
+            })}
+            className={inputClass("userName")}
+            placeholder="Username"
+          />
+        </div>
 
-        <label className="text-sm font-medium">Email</label>
-        <input
-          type="email"
-          autoComplete="email"
-          placeholder="Enter your Email"
-          {...register("email", {
-            required: "Email is required",
-            pattern: {
-              value: /^\S+@\S+$/i,
-              message: "Invalid email address",
-            },
-          })}
-          className={inputClass("email")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            autoComplete="email"
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^\S+@\S+$/i,
+                message: "Invalid email address",
+              },
+            })}
+            className={inputClass("email")}
+            placeholder="your@email.com"
+          />
+        </div>
 
-        <label className="text-sm font-medium">Password</label>
-        <input
-          type="password"
-          autoComplete="new-password"
-          placeholder="password"
-          {...register("password", {
-            required: "Password is required",
-            minLength: { value: 6, message: "Minimum 6 characters" },
-          })}
-          className={inputClass("password")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Password</label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            {...register("password", {
+              required: "Password is required",
+              minLength: { value: 6, message: "Minimum 6 characters" },
+            })}
+            className={inputClass("password")}
+            placeholder="Create password"
+          />
+        </div>
 
-        <label className="text-sm font-medium">Confirm Password</label>
-        <input
-          type="password"
-          autoComplete="new-password"
-          placeholder="Confirm Password"
-          {...register("confirmPassword", {
-            required: "Please confirm your password",
-          })}
-          className={inputClass("confirmPassword")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            {...register("confirmPassword", {
+              required: "Please confirm your password",
+            })}
+            className={inputClass("confirmPassword")}
+            placeholder="Repeat password"
+          />
+        </div>
 
-        <label className="text-sm font-medium">Primary Skills</label>
-        <input
-          type="text"
-          autoComplete="on"
-          placeholder="Enter your Skills Seperated by the ,"
-          {...register("primarySkills", { required: "Primary skills required" })}
-          className={inputClass("primarySkills")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Primary Skills</label>
+          <input
+            type="text"
+            autoComplete="on"
+            {...register("primarySkills", { required: "Primary skills required" })}
+            className={inputClass("primarySkills")}
+            placeholder="JavaScript, React, Firebase"
+          />
+        </div>
 
-        <label className="text-sm font-medium">GitHub Profile</label>
-        <input
-          type="url"
-          autoComplete="url"
-          placeholder="GitHub Url"
-          {...register("githubUrl", {
-            pattern: {
-              value: /^https:\/\/(www\.)?github\.com\/[A-Za-z0-9_-]+\/?$/,
-              message: "Enter a valid GitHub URL",
-            },
-          })}
-          className={inputClass("githubUrl")}
-        />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">GitHub Profile</label>
+          <input
+            type="url"
+            {...register("githubUrl", {
+              pattern: {
+                value: /^https:\/\/(www\.)?github\.com\/[A-Za-z0-9_-]+\/?$/,
+                message: "Enter a valid GitHub URL",
+              },
+            })}
+            className={inputClass("githubUrl")}
+            placeholder="https://github.com/yourname"
+          />
+        </div>
 
-        <div className="bg-white border border-gray-300 rounded-md p-4 shadow-sm mb-4">
-          <label className="text-sm font-semibold text-gray-700 block mb-2">Role</label>
-
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-700 block">Role</label>
           <div className="flex gap-4 flex-wrap">
             {["Student", "Working", "Freelancer"].map((role) => (
               <label
                 key={role}
-                className="text-sm flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200 hover:bg-gray-100 transition"
+                className="text-sm flex items-center gap-2 bg-indigo-50 px-4 py-1.5 rounded-xl border border-indigo-200 hover:bg-indigo-100"
               >
                 <input
                   type="radio"
                   value={role}
                   {...register("role", { required: "Select a role" })}
-                  className="accent-blue-500"
+                  className="accent-indigo-600"
                 />
                 {role}
               </label>
@@ -189,17 +190,17 @@ function SignUpUser() {
           </div>
         </div>
 
-        <label className="text-sm flex items-center gap-2">
+        <div className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             {...register("agreeToTerms", { required: "You must agree to terms" })}
+            className="accent-indigo-600"
           />
-          I agree to the terms and conditions
-        </label>
+          <span>I agree to the terms and conditions</span>
+        </div>
 
-        {/* Show combined error message at the bottom */}
         {getCombinedErrorMessage() && (
-          <p className="text-red-600 text-sm font-semibold text-center mt-2">
+          <p className="text-red-600 text-xs text-center font-medium">
             {getCombinedErrorMessage()}
           </p>
         )}
@@ -207,7 +208,7 @@ function SignUpUser() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition disabled:opacity-50"
         >
           {loading ? "Registering..." : "Register"}
         </button>
