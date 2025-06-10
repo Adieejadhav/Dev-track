@@ -7,7 +7,7 @@ const DashboardHeader = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await firebase.signOutUser();
+    await firebase.logout();
     navigate("/login");
   };
 
