@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ProfileSnapshot from "../Components/ProfileSnapshot";
 import DashboardHeader from "../Components/DashboardHeader";
 import SkillTrackerSection from "../Components/SkillTrackerSection.jsx";
+import TrackedSkillsSection from "../Components/TrackedSkillsSection.jsx";
 import DailyProgressSection from "../Components/DailyProgressSection.jsx";
 import { useFirebase } from "../Context/fireBaseContext";
 import { doc, getDoc } from "firebase/firestore";
@@ -52,6 +53,7 @@ const Dashboard = () => {
       <DashboardHeader />
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4 sm:px-8 lg:px-20">
         <div className="max-w-7xl mx-auto space-y-12">
+
           {/* Hero Header */}
           <header className="text-center max-w-3xl mx-auto mb-10">
             <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-purple-700 mb-3">
@@ -81,6 +83,18 @@ const Dashboard = () => {
                 primarySkills={userData?.primarySkills || []}
                 trackedSkills={userData?.trackedSkills || []}
                 onUpdate={fetchProfile}
+              />
+            )}
+          </section>
+
+          {/* Tracked Skills Progress */}
+          <section className="bg-white/90 backdrop-blur-md border border-gray-200 rounded-3xl shadow-xl p-4 sm:p-6 md:p-8 max-w-4xl mx-auto transition-shadow hover:shadow-2xl">
+            <h2 className="text-3xl font-semibold text-cyan-700 mb-6 text-center">
+              📊 Tracked Skills Progress
+            </h2>
+            {firebase?.user?.uid && (
+              <TrackedSkillsSection
+                trackedSkills={userData?.trackedSkills || []}
               />
             )}
           </section>
