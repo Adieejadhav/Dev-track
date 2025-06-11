@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProfileSnapshot from "../Components/ProfileSnapshot";
 import DashboardHeader from "../Components/DashboardHeader";
+import SkillSummarySection from "../Components/SkillSummarySection.jsx";
 import SkillTrackerSection from "../Components/SkillTrackerSection.jsx";
 import TrackedSkillsSection from "../Components/TrackedSkillsSection.jsx";
 import DailyProgressSection from "../Components/DailyProgressSection.jsx";
@@ -86,6 +87,17 @@ const Dashboard = () => {
               />
             )}
           </section>
+
+
+          
+          <SkillSummarySection
+            trackedProgress={userData?.trackedProgress || {}}
+            initialTrackedProgress={userData?.initialTrackedProgress || {}}
+            trackingStartedAt={userData?.trackingStartedAt}
+          />
+
+
+
 
           {/* Tracked Skills Progress */}
           <section className="bg-white/90 backdrop-blur-md border border-gray-200 rounded-3xl shadow-xl p-4 sm:p-6 md:p-8 max-w-4xl mx-auto transition-shadow hover:shadow-2xl">

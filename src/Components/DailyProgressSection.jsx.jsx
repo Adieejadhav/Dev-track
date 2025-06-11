@@ -18,6 +18,26 @@ const DailyProgressSection = () => {
   const firebase = useFirebase();
   const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd format
 
+  useEffect(() => {
+    const loadEntries = async () => {
+      try {
+        const user = firebase.user;
+        if (!user) return;
+
+        const data = await fetchDailyNotes(user.uid);
+        setEntries(data);
+
+        const allDates = Object.keys(data);
+        setTotalEntries(allDates.length);
+        setCurrentStreak(calculateStreak(allDates));
+      } catch (err) {
+        console.error("Failed to load notes:", err);
+      }
+    };
+
+    loadEntries();
+  }, [firebase.user]);
+
   const handleSaveNote = async () => {
     if (!note.trim()) return;
     setLoading(true);
@@ -28,45 +48,27 @@ const DailyProgressSection = () => {
 
       await saveDailyNote(user.uid, today, note.trim());
 
-      setEntries((prev) => ({
-        ...prev,
+      const updated = {
+        ...entries,
         [today]: {
           note: note.trim(),
           timestamp: new Date().toISOString(),
         },
-      }));
+      };
 
+      setEntries(updated);
       setNote("");
 
-
+      const allDates = Object.keys(updated);
+      setTotalEntries(allDates.length);
+      setCurrentStreak(calculateStreak(allDates));
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Error saving note:", err);
       alert("Failed to save note.");
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const loadEntries = async () => {
-      try {
-        const user = firebase.user;
-        if (!user) return;
-
-        const data = await fetchDailyNotes(user.uid);
-        setEntries(data);
-        const allDates = Object.keys(data);
-        setTotalEntries(allDates.length);
-        setCurrentStreak(calculateStreak(allDates));
-
-      } catch (err) {
-        console.error("Failed to load notes:", err);
-      }
-    };
-
-    loadEntries();
-  }, [firebase.user]);
-
 
   const handleSaveEdit = async (date) => {
     try {
@@ -75,16 +77,16 @@ const DailyProgressSection = () => {
 
       await updateDailyNote(user.uid, date, editingNote.trim());
 
-      // Update local state
-      setEntries((prev) => ({
-        ...prev,
+      const updated = {
+        ...entries,
         [date]: {
-          ...prev[date],
+          ...entries[date],
           note: editingNote.trim(),
           timestamp: new Date().toISOString(),
         },
-      }));
+      };
 
+      setEntries(updated);
       setEditingDate(null);
       setEditingNote("");
     } catch (err) {
@@ -92,7 +94,6 @@ const DailyProgressSection = () => {
       alert("Failed to update note.");
     }
   };
-
 
   const handleDelete = async (date) => {
     const confirm = window.confirm("Are you sure you want to delete this entry?");
@@ -104,47 +105,45 @@ const DailyProgressSection = () => {
 
       await deleteDailyNote(user.uid, date);
 
-      // Remove from UI
-      setEntries((prev) => {
-        const updated = { ...prev };
-        delete updated[date];
-        return updated;
-      });
+      const updated = { ...entries };
+      delete updated[date];
+      setEntries(updated);
+
+      const allDates = Object.keys(updated);
+      setTotalEntries(allDates.length);
+      setCurrentStreak(calculateStreak(allDates));
     } catch (err) {
       console.error("Error deleting note:", err);
       alert("Failed to delete note.");
     }
   };
 
+  const handleEdit = (date, note) => {
+    setEditingDate(date);
+    setEditingNote(note);
+  };
 
   const calculateStreak = (dates) => {
     const sorted = dates
-    .map((d) => new Date(d))
-    .sort((a, b) => b - a); // descending
+      .map((d) => new Date(d))
+      .sort((a, b) => b - a);
 
     let streak = 0;
     let today = new Date();
     today.setHours(0, 0, 0, 0);
 
     for (let date of sorted) {
-    const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0 || diffDays === streak) {
-    streak++;
-    } else {
-    break;
-    }
-    today.setDate(today.getDate() - 1);
+      if (diffDays === 0 || diffDays === streak) {
+        streak++;
+      } else {
+        break;
+      }
+      today.setDate(today.getDate() - 1);
     }
 
     return streak;
-    };
-
-
-
-  const handleEdit = (date, note) => {
-    setEditingDate(date);
-    setEditingNote(note);
   };
 
   return (
@@ -156,10 +155,7 @@ const DailyProgressSection = () => {
 
       {/* Input Box */}
       <div className="mb-5">
-        <label
-          htmlFor="daily-note"
-          className="block mb-1 font-semibold text-purple-800"
-        >
+        <label htmlFor="daily-note" className="block mb-1 font-semibold text-purple-800">
           Note for <span className="font-mono">{today}</span>:
         </label>
         <textarea
@@ -190,28 +186,32 @@ const DailyProgressSection = () => {
         {loading ? "Saving..." : "Save Today's Note"}
       </button>
 
-      {/* Past Entries - Placeholder */}
+      {/* Stats */}
+      <div className="mt-6 grid grid-cols-2 gap-4 text-purple-800 text-center font-semibold">
+        <div className="bg-white rounded-lg p-4 shadow">
+          <p className="text-3xl text-purple-700">{currentStreak}</p>
+          <p className="text-sm mt-1">🔥 Current Streak</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 shadow">
+          <p className="text-3xl text-purple-700">{totalEntries}</p>
+          <p className="text-sm mt-1">📝 Total Entries</p>
+        </div>
+      </div>
+
+      {/* Past Entries */}
       <div className="mt-8 max-h-64 overflow-y-auto bg-white rounded-lg shadow-inner p-4">
-        <h3 className="text-lg font-semibold text-purple-700 mb-3">
-          Past Entries
-        </h3>
+        <h3 className="text-lg font-semibold text-purple-700 mb-3">Past Entries</h3>
         {Object.keys(entries).length === 0 ? (
-          <p className="text-sm text-purple-600 italic text-center">
-            No entries yet.
-          </p>
+          <p className="text-sm text-purple-600 italic text-center">No entries yet.</p>
         ) : (
           <ul className="space-y-3">
             {Object.entries(entries)
-              .sort(
-                (a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp)
-              )
+              .sort((a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp))
               .map(([date, entry]) => (
                 <li key={date} className="bg-purple-50 rounded-lg p-3 shadow">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-mono text-purple-700 mb-1">
-                        {date}
-                      </p>
+                      <p className="text-sm font-mono text-purple-700 mb-1">{date}</p>
                       {editingDate === date ? (
                         <>
                           <textarea
@@ -239,9 +239,7 @@ const DailyProgressSection = () => {
                           </div>
                         </>
                       ) : (
-                        <p className="text-gray-800 text-sm whitespace-pre-line">
-                          {entry.note}
-                        </p>
+                        <p className="text-gray-800 text-sm whitespace-pre-line">{entry.note}</p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -263,18 +261,6 @@ const DailyProgressSection = () => {
               ))}
           </ul>
         )}
-      </div>
-
-      {/* Stats Section - Placeholder */}
-      <div className="mt-6 flex justify-around text-purple-700 font-semibold text-center">
-        <div>
-          <p className="text-2xl">{currentStreak}</p>
-          <p className="text-sm">Current Streak</p>
-        </div>
-        <div>
-          <p className="text-2xl">{totalEntries}</p>
-          <p className="text-sm">Total Entries</p>
-        </div>
       </div>
     </div>
   );
