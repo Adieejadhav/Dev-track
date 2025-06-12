@@ -52,7 +52,9 @@ function SignUpUser() {
 
   const inputClass = (fieldName) =>
     `w-full px-4 py-3 rounded-xl border text-sm bg-white/90 backdrop-blur-md focus:outline-none focus:ring-2 ${
-      errors[fieldName] ? "border-red-500 focus:ring-red-300" : "border-gray-300 focus:ring-indigo-400"
+      errors[fieldName]
+        ? "border-red-500 focus:ring-red-300"
+        : "border-gray-300 focus:ring-indigo-400"
     }`;
 
   const getCombinedErrorMessage = () => {
@@ -72,7 +74,9 @@ function SignUpUser() {
         </h2>
 
         {firebaseError && (
-          <p className="text-red-600 text-sm text-center font-medium">{firebaseError}</p>
+          <p className="text-red-600 text-sm text-center font-medium">
+            {firebaseError}
+          </p>
         )}
 
         <div className="space-y-2">
@@ -149,7 +153,9 @@ function SignUpUser() {
           <input
             type="text"
             autoComplete="on"
-            {...register("primarySkills", { required: "Primary skills required" })}
+            {...register("primarySkills", {
+              required: "Primary skills required",
+            })}
             className={inputClass("primarySkills")}
             placeholder="JavaScript, React, Firebase"
           />
@@ -212,6 +218,20 @@ function SignUpUser() {
         >
           {loading ? "Registering..." : "Register"}
         </button>
+
+        {/* 👇 Added Login Redirect Link Here */}
+        <div className="text-center pt-4">
+          <p className="text-sm text-gray-700">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="text-indigo-600 hover:underline font-medium"
+            >
+              Log in
+            </button>
+          </p>
+        </div>
       </form>
     </div>
   );
