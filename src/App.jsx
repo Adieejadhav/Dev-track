@@ -3,6 +3,7 @@ import Dashboard from "./Pages/Dashboard"
 import SignUpUser from "./Pages/SignUpUser"
 import LoginPage from "./Pages/LoginPage"
 import Homepage from "./Pages/Homepage"
+import SkillProgressLog from "./Pages/SkillProgressLog"
 
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
             <Route path="/login" element={<LoginPage/>} />
             <Route path="/signupuser" element={<SignUpUser/>} />
             <Route path="/dashboard" element={<Dashboard/>} />
+            <Route path="/skill/:skillName" element={<SkillProgressLog/>} />
         </Routes>
       </BrowserRouter>
     </>
