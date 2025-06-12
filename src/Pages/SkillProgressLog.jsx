@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../Firebase/fireBaseConfig";
-import { collection, addDoc, getDocs, query, orderBy } from "firebase/firestore";
-import { useFirebase } from "../Context/firebaseContext";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
+import { useFirebase } from "../Context/fireBaseContext";
 
 const SkillProgressLog = () => {
   const { skillName } = useParams();
@@ -10,6 +19,8 @@ const SkillProgressLog = () => {
   const [logText, setLogText] = useState("");
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingLogId, setEditingLogId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   const logsRef = collection(
     db,
@@ -41,7 +52,44 @@ const SkillProgressLog = () => {
     });
 
     setLogText("");
-    fetchLogs(); // Refresh
+    fetchLogs();
+  };
+
+  const handleSaveEdit = async (logId) => {
+    if (!editText.trim()) return;
+
+    const logDocRef = doc(
+      db,
+      "users",
+      user.uid,
+      "trackedSkills",
+      skillName,
+      "logs",
+      logId
+    );
+    await updateDoc(logDocRef, {
+      text: editText,
+    });
+    setEditingLogId(null);
+    setEditText("");
+    fetchLogs();
+  };
+
+  const handleDeleteLog = async (logId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this log?");
+    if (!confirmDelete) return;
+
+    const logDocRef = doc(
+      db,
+      "users",
+      user.uid,
+      "trackedSkills",
+      skillName,
+      "logs",
+      logId
+    );
+    await deleteDoc(logDocRef);
+    fetchLogs();
   };
 
   const formatDate = (isoString) => {
@@ -97,8 +145,53 @@ const SkillProgressLog = () => {
                   key={log.id}
                   className="bg-white border border-gray-200 rounded-xl shadow-sm p-4"
                 >
-                  <div className="text-sm text-gray-400 mb-1">{formatDate(log.date)}</div>
-                  <div className="text-gray-800">{log.text}</div>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-sm text-gray-400">{formatDate(log.date)}</span>
+                    <div className="space-x-3">
+                      <button
+                        onClick={() => {
+                          setEditingLogId(log.id);
+                          setEditText(log.text);
+                        }}
+                        className="text-indigo-500 text-sm"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLog(log.id)}
+                        className="text-red-500 text-sm"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {editingLogId === log.id ? (
+                    <>
+                      <textarea
+                        className="w-full border border-gray-300 p-2 rounded-lg mb-2"
+                        rows={3}
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => handleSaveEdit(log.id)}
+                          className="text-green-600 font-semibold"
+                        >
+                          ✅ Save
+                        </button>
+                        <button
+                          onClick={() => setEditingLogId(null)}
+                          className="text-gray-500"
+                        >
+                          ❌ Cancel
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-gray-800">{log.text}</div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -110,4 +203,3 @@ const SkillProgressLog = () => {
 };
 
 export default SkillProgressLog;
-  
