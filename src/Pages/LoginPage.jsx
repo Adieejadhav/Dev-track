@@ -39,7 +39,7 @@ function LoginPage() {
       await firebase.login(data.email, data.password);
       setSuccessMessage('✅ Login successful! Redirecting...');
       reset();
-      setTimeout(() => navigate('/dashboard'), 1500);
+      setTimeout(() => navigate('/profile'), 1500);
     } catch (err) {
       const friendlyMessage = handleFirebaseError(err.code);
       setAuthError(friendlyMessage);
