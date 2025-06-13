@@ -1,5 +1,6 @@
 import { Route ,BrowserRouter,Routes } from "react-router-dom"
 import Dashboard from "./Pages/Dashboard"
+import ProfilePage from "./Pages/ProfilePage"
 import SignUpUser from "./Pages/SignUpUser"
 import LoginPage from "./Pages/LoginPage"
 import Homepage from "./Pages/Homepage"
@@ -16,6 +17,7 @@ function App() {
             <Route path="/signupuser" element={<SignUpUser/>} />
             <Route path="/dashboard" element={<Dashboard/>} />
             <Route path="/skill/:skillName" element={<SkillProgressLog/>} />
+            <Route path="/profile" element={<ProfilePage/>} />
         </Routes>
       </BrowserRouter>
     </>
