@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../Firebase/fireBaseConfig';
 import imageCompression from 'browser-image-compression';
 import { motion } from 'framer-motion';
+import { FiPlus } from 'react-icons/fi';
 
 function ProfilePage() {
   const { user } = useFirebase();
@@ -67,36 +68,45 @@ function ProfilePage() {
   if (!profile) return <p className="text-center mt-10 text-red-600">Profile data not found.</p>;
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-4 animate-fade-in">
-      <h2 className="text-3xl font-bold text-center mb-8">
+    <div className="min-h-screen bg-gradient-to-tr from-blue-100 via-purple-100 to-pink-100 py-10 px-4">
+      <motion.h2
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-4xl font-bold text-center mb-10 text-gray-800"
+      >
         👋 Welcome, {profile.userName || 'Developer'}
-      </h2>
+      </motion.h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Side – Profile Info */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Profile Panel */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="col-span-1 bg-white rounded-xl shadow-lg p-6 text-center"
+          className="col-span-1 bg-gradient-to-b from-white to-gray-100 rounded-2xl shadow-xl p-8 text-center space-y-5 border border-gray-200"
         >
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center">
             {profile?.photoUrl ? (
               <img
                 src={profile.photoUrl}
                 alt="Profile"
-                className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg"
+                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
               />
             ) : (
-              <div className="w-28 h-28 rounded-full bg-gray-300 flex items-center justify-center text-4xl text-white">
+              <div className="w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center text-5xl text-white">
                 {profile?.userName?.charAt(0)?.toUpperCase()}
               </div>
             )}
           </div>
 
-          <p className="text-xl font-semibold">{profile.fullName}</p>
-          <p className="text-gray-600">@{profile.userName}</p>
+          <div className="space-y-1">
+            <p className="text-2xl font-bold text-gray-800">{profile.fullName || 'No Name Provided'}</p>
+            <p className="text-gray-500">@{profile.userName}</p>
+            <p className="text-gray-600">{profile.role || 'No role added'}</p>
+            <p className="text-gray-600">{profile.email || 'Email not added'}</p>
+            <p className="text-gray-600">{profile.location || 'Location not added'}</p>
+          </div>
 
-          <label className="block mt-4 text-sm font-medium text-blue-600 cursor-pointer">
+          <label className="block mt-3 text-sm font-medium text-blue-600 cursor-pointer">
             Upload New Photo
             <input
               type="file"
@@ -107,68 +117,44 @@ function ProfilePage() {
           </label>
         </motion.div>
 
-        {/* Right Side – Profile Sections */}
+        {/* Profile Details */}
         <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ProfileSection
-            title="🎯 Basic Info"
-            gradient="from-pink-500 to-orange-400"
-            fields={[
-              { label: 'Full Name', value: profile.fullName },
-              { label: 'Username', value: profile.userName },
-              { label: 'Role', value: profile.role },
-              { label: 'Email', value: profile.email },
-              { label: 'Location', value: profile.location },
-            ]}
-          />
+          <ProfileCard title="🌐 Professional Links" fields={[
+            { label: 'GitHub', value: profile.githubUrl, isLink: true },
+            { label: 'LinkedIn', value: profile.linkedinUrl, isLink: true },
+            { label: 'Portfolio', value: profile.portfolioUrl, isLink: true },
+            { label: 'Resume', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
+          ]} />
 
-          <ProfileSection
-            title="💼 Professional Links"
-            gradient="from-purple-500 to-indigo-500"
-            fields={[
-              { label: 'GitHub', value: profile.githubUrl, isLink: true },
-              { label: 'LinkedIn', value: profile.linkedinUrl, isLink: true },
-              { label: 'Portfolio', value: profile.portfolioUrl, isLink: true },
-              { label: 'Resume', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
-            ]}
-          />
+          <ProfileCard title="⚡ Skills & Achievements" fields={[
+            {
+              label: 'Primary Skills',
+              value: Array.isArray(profile.primarySkills)
+                ? profile.primarySkills.join(', ')
+                : '',
+            },
+            { label: 'Max Coding Streak', value: profile.maxStreak },
+          ]} />
 
-          <ProfileSection
-            title="💻 Skills & Achievements"
-            gradient="from-green-500 to-lime-400"
-            fields={[
-              {
-                label: 'Primary Skills',
-                value: Array.isArray(profile.primarySkills)
-                  ? profile.primarySkills.join(', ')
-                  : '',
-              },
-              { label: 'Max Coding Streak', value: profile.maxStreak },
-            ]}
-          />
-
-          <ProfileSection
-            title="🧠 About Me"
-            gradient="from-blue-500 to-cyan-400"
-            fields={[{ label: 'Bio', value: profile.bio }]}
-          />
+          <ProfileCard title="🧠 About Me" fields={[
+            { label: 'Bio', value: profile.bio }
+          ]} />
         </div>
       </div>
     </div>
   );
 }
 
-function ProfileSection({ title, gradient, fields }) {
+function ProfileCard({ title, fields }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between h-full"
+      transition={{ duration: 0.4 }}
+      className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300"
     >
-      <h3 className={`text-xl font-semibold text-white px-4 py-2 rounded-t-md mb-4 bg-gradient-to-r ${gradient}`}>
-        {title}
-      </h3>
-
-      <div className="space-y-4">
+      <h3 className="text-xl font-semibold mb-4 text-gray-800">{title}</h3>
+      <div className="space-y-3">
         {fields.map((field, idx) =>
           field.value ? (
             <div key={idx}>
@@ -176,20 +162,24 @@ function ProfileSection({ title, gradient, fields }) {
               {field.isLink ? (
                 <a
                   href={field.value}
-                  className="text-lg font-medium text-blue-600 underline break-all"
+                  className="text-base text-blue-600 font-medium underline break-words"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {field.linkText || field.value}
                 </a>
               ) : (
-                <p className="text-lg font-medium break-words">{field.value}</p>
+                <p className="text-base text-gray-800 break-words">{field.value}</p>
               )}
             </div>
           ) : (
-            <div key={idx} className="text-yellow-600 font-medium animate-pulse">
-              ➕ Add your {field.label.toLowerCase()} to complete your profile!
-            </div>
+            <button
+              key={idx}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"
+            >
+              <FiPlus className="text-base" />
+              Add your {field.label.toLowerCase()}
+            </button>
           )
         )}
       </div>
