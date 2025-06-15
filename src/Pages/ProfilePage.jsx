@@ -117,7 +117,7 @@ function ProfilePage() {
           </label>
         </motion.div>
 
-        {/* Profile Details */}
+        {/* Right Profile Details */}
         <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
           <ProfileCard title="🌐 Professional Links" fields={[
             { label: 'GitHub', value: profile.githubUrl, isLink: true },
@@ -151,31 +151,34 @@ function ProfileCard({ title, fields }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300"
+      className="rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
     >
-      <h3 className="text-xl font-semibold mb-4 text-gray-800">{title}</h3>
-      <div className="space-y-3">
+      <div className="bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 px-6 py-4">
+        <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+      </div>
+
+      <div className="bg-white px-6 py-5 space-y-4">
         {fields.map((field, idx) =>
           field.value ? (
-            <div key={idx}>
-              <p className="text-sm text-gray-500">{field.label}</p>
+            <div key={idx} className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
               {field.isLink ? (
                 <a
                   href={field.value}
-                  className="text-base text-blue-600 font-medium underline break-words"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="text-sm text-blue-600 font-medium underline break-words hover:text-blue-800 transition-colors"
                 >
                   {field.linkText || field.value}
                 </a>
               ) : (
-                <p className="text-base text-gray-800 break-words">{field.value}</p>
+                <p className="text-sm text-gray-700 font-medium break-words">{field.value}</p>
               )}
             </div>
           ) : (
             <button
               key={idx}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-all"
             >
               <FiPlus className="text-base" />
               Add your {field.label.toLowerCase()}
