@@ -16,8 +16,9 @@ function App() {
             <Route path="/login" element={<LoginPage/>} />
             <Route path="/signupuser" element={<SignUpUser/>} />
             <Route path="/dashboard" element={<Dashboard/>} />
-            <Route path="/skill/:skillName" element={<SkillProgressLog/>} />
             <Route path="/profile" element={<ProfilePage/>} />
+            <Route path="/public-profile/:uid" element={<RecruiterView />} />
+            <Route path="/skill/:skillName" element={<SkillProgressLog/>} />
         </Routes>
       </BrowserRouter>
     </>
