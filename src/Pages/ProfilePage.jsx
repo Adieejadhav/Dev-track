@@ -11,23 +11,23 @@ function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
+  const fetchProfile = async () => {
+    if (!user) return;
 
-      try {
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setProfile(docSnap.data());
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-      } finally {
-        setLoading(false);
+    try {
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setProfile({ ...docSnap.data(), email: user.email });
       }
-    };
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProfile();
   }, [user]);
 
@@ -97,13 +97,14 @@ function ProfilePage() {
               </div>
             )}
           </div>
+          <p className="text-sm text-gray-500 mt-1">Profile Photo</p>
 
           <div className="space-y-1">
             <p className="text-2xl font-bold text-gray-800">{profile.fullName || 'No Name Provided'}</p>
             <p className="text-gray-500">@{profile.userName}</p>
             <p className="text-gray-600">{profile.role || 'No role added'}</p>
             <p className="text-gray-600">{profile.email || 'Email not added'}</p>
-            <p className="text-gray-600">{profile.location || 'Location not added'}</p>
+            <p className="text-gray-600">{profile.address || 'Address not added'}</p>
           </div>
 
           <label className="block mt-3 text-sm font-medium text-blue-600 cursor-pointer">
@@ -119,33 +120,49 @@ function ProfilePage() {
 
         {/* Right Profile Details */}
         <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ProfileCard title="🌐 Professional Links" fields={[
-            { label: 'GitHub', value: profile.githubUrl, isLink: true },
-            { label: 'LinkedIn', value: profile.linkedinUrl, isLink: true },
-            { label: 'Portfolio', value: profile.portfolioUrl, isLink: true },
-            { label: 'Resume', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
-          ]} userId={user.uid} />
+          <ProfileCard
+            title="🌐 Professional Links"
+            fields={[
+              { label: 'GitHub', value: profile.githubUrl, isLink: true },
+              { label: 'LinkedIn', value: profile.linkedinUrl, isLink: true },
+              { label: 'Portfolio', value: profile.portfolioUrl, isLink: true },
+              { label: 'Resume', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
+            ]}
+            userId={user.uid}
+            setProfile={setProfile}
+          />
 
-          <ProfileCard title="⚡ Skills & Achievements" fields={[
-            {
-              label: 'Primary Skills',
-              value: Array.isArray(profile.primarySkills)
-                ? profile.primarySkills.join(', ')
-                : '',
-            },
-            { label: 'Max Coding Streak', value: profile.maxStreak },
-          ]} userId={user.uid} />
+          <ProfileCard
+            title="⚡ Skills & Achievements"
+            fields={[
+              {
+                label: 'Primary Skills',
+                value: Array.isArray(profile.primarySkills)
+                  ? profile.primarySkills.join(', ')
+                  : '',
+              },
+              { label: 'Max Coding Streak', value: profile.maxStreak },
+            ]}
+            userId={user.uid}
+            setProfile={setProfile}
+          />
 
-          <ProfileCard title="🧠 About Me" fields={[
-            { label: 'Bio', value: profile.bio }
-          ]} userId={user.uid} />
+          <ProfileCard
+            title="🧠 About Me"
+            fields={[
+              { label: 'Bio', value: profile.bio },
+              { label: 'Address', value: profile.address },
+            ]}
+            userId={user.uid}
+            setProfile={setProfile}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function ProfileCard({ title, fields, userId }) {
+function ProfileCard({ title, fields, userId, setProfile }) {
   const [editingField, setEditingField] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -153,14 +170,17 @@ function ProfileCard({ title, fields, userId }) {
     if (!inputValue.trim()) return;
 
     const docRef = doc(db, 'users', userId);
-
     try {
       await updateDoc(docRef, {
         [fieldKey]: inputValue,
       });
 
-      // Reload the page to reflect updated field
-      window.location.reload();
+      setProfile((prev) => ({
+        ...prev,
+        [fieldKey]: inputValue,
+      }));
+      setEditingField(null);
+      setInputValue('');
     } catch (err) {
       console.error('Error updating profile:', err);
     }
@@ -210,12 +230,23 @@ function ProfileCard({ title, fields, userId }) {
                 onChange={(e) => setInputValue(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 text-sm"
               />
-              <button
-                onClick={() => handleSave(fieldKey)}
-                className="text-sm mt-1 text-white bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded"
-              >
-                Save
-              </button>
+              <div className="flex gap-2 mt-1">
+                <button
+                  onClick={() => handleSave(fieldKey)}
+                  className="text-sm text-white bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingField(null);
+                    setInputValue('');
+                  }}
+                  className="text-sm text-gray-600 hover:text-red-500 px-4 py-1"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           ) : (
             <button
