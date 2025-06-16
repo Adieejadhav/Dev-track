@@ -10,6 +10,8 @@ function ProfilePage() {
   const { user } = useFirebase();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editingField, setEditingField] = useState(null);
+  const [newValue, setNewValue] = useState('');
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -18,7 +20,8 @@ function ProfilePage() {
       const docRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setProfile({ ...docSnap.data(), email: user.email });
+        const profileData = docSnap.data();
+        setProfile({ ...profileData, email: user.email }); // Add email from user
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -64,8 +67,30 @@ function ProfilePage() {
     }
   };
 
-  if (!user || loading) return <p className="text-center mt-10">Loading Profile...</p>;
-  if (!profile) return <p className="text-center mt-10 text-red-600">Profile data not found.</p>;
+  const handleFieldUpdate = async (field) => {
+    if (!newValue.trim()) return;
+
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        [field]: newValue.trim(),
+      });
+
+      setProfile((prev) => ({
+        ...prev,
+        [field]: newValue.trim(),
+      }));
+    } catch (err) {
+      console.error('Failed to update:', err);
+    } finally {
+      setEditingField(null);
+      setNewValue('');
+    }
+  };
+
+  if (!user || loading)
+    return <p className="text-center mt-10">Loading Profile...</p>;
+  if (!profile)
+    return <p className="text-center mt-10 text-red-600">Profile data not found.</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-blue-100 via-purple-100 to-pink-100 py-10 px-4">
@@ -97,13 +122,16 @@ function ProfilePage() {
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-1">Profile Photo</p>
+
+          <p className="text-sm text-gray-500">Profile Photo</p>
 
           <div className="space-y-1">
-            <p className="text-2xl font-bold text-gray-800">{profile.fullName || 'No Name Provided'}</p>
+            <p className="text-2xl font-bold text-gray-800">
+              {profile.fullName || 'No Name Provided'}
+            </p>
             <p className="text-gray-500">@{profile.userName}</p>
             <p className="text-gray-600">{profile.role || 'No role added'}</p>
-            <p className="text-gray-600">{profile.email || 'Email not added'}</p>
+            <p className="text-gray-600">{profile.email || 'Email not available'}</p>
             <p className="text-gray-600">{profile.address || 'Address not added'}</p>
           </div>
 
@@ -123,13 +151,20 @@ function ProfilePage() {
           <ProfileCard
             title="🌐 Professional Links"
             fields={[
-              { label: 'GitHub', value: profile.githubUrl, isLink: true },
-              { label: 'LinkedIn', value: profile.linkedinUrl, isLink: true },
-              { label: 'Portfolio', value: profile.portfolioUrl, isLink: true },
-              { label: 'Resume', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
+              { label: 'GitHub', field: 'githubUrl', value: profile.githubUrl, isLink: true },
+              { label: 'LinkedIn', field: 'linkedinUrl', value: profile.linkedinUrl, isLink: true },
+              { label: 'Portfolio', field: 'portfolioUrl', value: profile.portfolioUrl, isLink: true },
+              { label: 'Resume', field: 'resumeUrl', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
             ]}
-            userId={user.uid}
-            setProfile={setProfile}
+            editingField={editingField}
+            newValue={newValue}
+            onEdit={setEditingField}
+            onChange={setNewValue}
+            onUpdate={handleFieldUpdate}
+            onCancel={() => {
+              setEditingField(null);
+              setNewValue('');
+            }}
           />
 
           <ProfileCard
@@ -137,24 +172,36 @@ function ProfilePage() {
             fields={[
               {
                 label: 'Primary Skills',
+                field: 'primarySkills',
                 value: Array.isArray(profile.primarySkills)
                   ? profile.primarySkills.join(', ')
                   : '',
               },
-              { label: 'Max Coding Streak', value: profile.maxStreak },
+              { label: 'Max Coding Streak', field: 'maxStreak', value: profile.maxStreak },
             ]}
-            userId={user.uid}
-            setProfile={setProfile}
+            editingField={editingField}
+            newValue={newValue}
+            onEdit={setEditingField}
+            onChange={setNewValue}
+            onUpdate={handleFieldUpdate}
+            onCancel={() => {
+              setEditingField(null);
+              setNewValue('');
+            }}
           />
 
           <ProfileCard
             title="🧠 About Me"
-            fields={[
-              { label: 'Bio', value: profile.bio },
-              { label: 'Address', value: profile.address },
-            ]}
-            userId={user.uid}
-            setProfile={setProfile}
+            fields={[{ label: 'Bio', field: 'bio', value: profile.bio }]}
+            editingField={editingField}
+            newValue={newValue}
+            onEdit={setEditingField}
+            onChange={setNewValue}
+            onUpdate={handleFieldUpdate}
+            onCancel={() => {
+              setEditingField(null);
+              setNewValue('');
+            }}
           />
         </div>
       </div>
@@ -162,30 +209,16 @@ function ProfilePage() {
   );
 }
 
-function ProfileCard({ title, fields, userId, setProfile }) {
-  const [editingField, setEditingField] = useState(null);
-  const [inputValue, setInputValue] = useState('');
-
-  const handleSave = async (fieldKey) => {
-    if (!inputValue.trim()) return;
-
-    const docRef = doc(db, 'users', userId);
-    try {
-      await updateDoc(docRef, {
-        [fieldKey]: inputValue,
-      });
-
-      setProfile((prev) => ({
-        ...prev,
-        [fieldKey]: inputValue,
-      }));
-      setEditingField(null);
-      setInputValue('');
-    } catch (err) {
-      console.error('Error updating profile:', err);
-    }
-  };
-
+function ProfileCard({
+  title,
+  fields,
+  editingField,
+  newValue,
+  onEdit,
+  onChange,
+  onUpdate,
+  onCancel,
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -198,13 +231,8 @@ function ProfileCard({ title, fields, userId, setProfile }) {
       </div>
 
       <div className="bg-white px-6 py-5 space-y-4">
-        {fields.map((field, idx) => {
-          const fieldKey = field.label
-            .toLowerCase()
-            .replace(/ /g, '')
-            .replace('primaryskills', 'primarySkills');
-
-          return field.value ? (
+        {fields.map((field, idx) =>
+          field.value ? (
             <div key={idx} className="space-y-1">
               <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
               {field.isLink ? (
@@ -220,29 +248,24 @@ function ProfileCard({ title, fields, userId, setProfile }) {
                 <p className="text-sm text-gray-700 font-medium break-words">{field.value}</p>
               )}
             </div>
-          ) : editingField === idx ? (
-            <div key={idx} className="space-y-1">
-              <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
+          ) : editingField === field.field ? (
+            <div key={idx} className="space-y-2">
               <input
-                type="text"
-                placeholder={`Enter ${field.label}`}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={newValue}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-1 text-sm"
+                placeholder={`Enter ${field.label.toLowerCase()}`}
               />
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2">
                 <button
-                  onClick={() => handleSave(fieldKey)}
-                  className="text-sm text-white bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded"
+                  onClick={() => onUpdate(field.field)}
+                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                 >
                   Save
                 </button>
                 <button
-                  onClick={() => {
-                    setEditingField(null);
-                    setInputValue('');
-                  }}
-                  className="text-sm text-gray-600 hover:text-red-500 px-4 py-1"
+                  onClick={onCancel}
+                  className="px-3 py-1 bg-gray-300 text-sm rounded hover:bg-gray-400"
                 >
                   Cancel
                 </button>
@@ -251,17 +274,14 @@ function ProfileCard({ title, fields, userId, setProfile }) {
           ) : (
             <button
               key={idx}
+              onClick={() => onEdit(field.field)}
               className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-all"
-              onClick={() => {
-                setEditingField(idx);
-                setInputValue('');
-              }}
             >
               <FiPlus className="text-base" />
               Add your {field.label.toLowerCase()}
             </button>
-          );
-        })}
+          )
+        )}
       </div>
     </motion.div>
   );
