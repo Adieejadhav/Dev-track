@@ -124,7 +124,7 @@ function ProfilePage() {
             { label: 'LinkedIn', value: profile.linkedinUrl, isLink: true },
             { label: 'Portfolio', value: profile.portfolioUrl, isLink: true },
             { label: 'Resume', value: profile.resumeUrl, isLink: true, linkText: 'View Resume' },
-          ]} />
+          ]} userId={user.uid} />
 
           <ProfileCard title="⚡ Skills & Achievements" fields={[
             {
@@ -134,18 +134,38 @@ function ProfilePage() {
                 : '',
             },
             { label: 'Max Coding Streak', value: profile.maxStreak },
-          ]} />
+          ]} userId={user.uid} />
 
           <ProfileCard title="🧠 About Me" fields={[
             { label: 'Bio', value: profile.bio }
-          ]} />
+          ]} userId={user.uid} />
         </div>
       </div>
     </div>
   );
 }
 
-function ProfileCard({ title, fields }) {
+function ProfileCard({ title, fields, userId }) {
+  const [editingField, setEditingField] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+
+  const handleSave = async (fieldKey) => {
+    if (!inputValue.trim()) return;
+
+    const docRef = doc(db, 'users', userId);
+
+    try {
+      await updateDoc(docRef, {
+        [fieldKey]: inputValue,
+      });
+
+      // Reload the page to reflect updated field
+      window.location.reload();
+    } catch (err) {
+      console.error('Error updating profile:', err);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -158,8 +178,13 @@ function ProfileCard({ title, fields }) {
       </div>
 
       <div className="bg-white px-6 py-5 space-y-4">
-        {fields.map((field, idx) =>
-          field.value ? (
+        {fields.map((field, idx) => {
+          const fieldKey = field.label
+            .toLowerCase()
+            .replace(/ /g, '')
+            .replace('primaryskills', 'primarySkills');
+
+          return field.value ? (
             <div key={idx} className="space-y-1">
               <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
               {field.isLink ? (
@@ -175,16 +200,37 @@ function ProfileCard({ title, fields }) {
                 <p className="text-sm text-gray-700 font-medium break-words">{field.value}</p>
               )}
             </div>
+          ) : editingField === idx ? (
+            <div key={idx} className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
+              <input
+                type="text"
+                placeholder={`Enter ${field.label}`}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+              />
+              <button
+                onClick={() => handleSave(fieldKey)}
+                className="text-sm mt-1 text-white bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded"
+              >
+                Save
+              </button>
+            </div>
           ) : (
             <button
               key={idx}
               className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-all"
+              onClick={() => {
+                setEditingField(idx);
+                setInputValue('');
+              }}
             >
               <FiPlus className="text-base" />
               Add your {field.label.toLowerCase()}
             </button>
-          )
-        )}
+          );
+        })}
       </div>
     </motion.div>
   );
