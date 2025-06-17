@@ -5,6 +5,7 @@ import SignUpUser from "./Pages/SignUpUser"
 import LoginPage from "./Pages/LoginPage"
 import Homepage from "./Pages/Homepage"
 import SkillProgressLog from "./Pages/SkillProgressLog"
+import RecruiterView from "./Pages/RecruiterView"
 
 function App() {
 
