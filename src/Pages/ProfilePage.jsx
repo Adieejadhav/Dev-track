@@ -135,7 +135,6 @@ function ProfilePage() {
               fields={[
                 { label: 'GitHub', field: 'githubUrl', value: profile.githubUrl, isLink: true },
                 { label: 'LinkedIn', field: 'linkedinUrl', value: profile.linkedinUrl, isLink: true },
-                { label: 'Portfolio', field: 'portfolioUrl', value: profile.portfolioUrl, isLink: true },
                 {
                   label: 'Resume',
                   field: 'resumeUrl',
@@ -159,6 +158,7 @@ function ProfilePage() {
                     </div>
                   ),
                 },
+                { label: 'Portfolio', field: 'portfolioUrl', value: profile.portfolioUrl, isLink: true },
               ]}
               editingField={editingField}
               newValue={newValue}
@@ -226,59 +226,73 @@ function ProfileCard({ title, fields, editingField, newValue, onEdit, onChange, 
         <h3 className="text-lg font-bold text-gray-800">{title}</h3>
       </div>
       <div className="bg-white px-6 py-5 space-y-4">
-        {fields.map((field, idx) =>
-          field.value ? (
-            <div key={idx} className="space-y-1">
-              <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
-              {field.customElement ? (
-                field.customElement
-              ) : field.isLink ? (
-                <a
-                  href={field.value}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 font-medium underline break-words hover:text-blue-800 transition-colors"
-                >
-                  {field.linkText || field.value}
-                </a>
-              ) : (
-                <p className="text-sm text-gray-700 font-medium break-words">{field.value}</p>
-              )}
-            </div>
-          ) : editingField === field.field ? (
-            <div key={idx} className="space-y-2">
-              <input
-                value={newValue}
-                onChange={(e) => onChange(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-1 text-sm"
-                placeholder={`Enter ${field.label.toLowerCase()}`}
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onUpdate(field.field)}
-                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={onCancel}
-                  className="px-3 py-1 bg-gray-300 text-sm rounded hover:bg-gray-400"
-                >
-                  Cancel
-                </button>
+        {fields.map((field, idx) => {
+            const isEditing = editingField === field.field;
+
+            // Special handling for resume
+            if (field.field === 'resumeUrl') {
+              return (
+                <div key={idx} className="space-y-1">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
+                  {field.customElement}
+                </div>
+              );
+            }
+
+            // Normal field rendering
+            return field.value ? (
+              <div key={idx} className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-gray-400">{field.label}</p>
+                {field.customElement ? (
+                  field.customElement
+                ) : field.isLink ? (
+                  <a
+                    href={field.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 font-medium underline break-words hover:text-blue-800 transition-colors"
+                  >
+                    {field.linkText || field.value}
+                  </a>
+                ) : (
+                  <p className="text-sm text-gray-700 font-medium break-words">{field.value}</p>
+                )}
               </div>
-            </div>
-          ) : (
-            <button
-              key={idx}
-              onClick={() => onEdit(field.field)}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-all"
-            >
-              <FiPlus className="text-base" />
-              Add your {field.label.toLowerCase()}
-            </button>
-          )
-        )}
+            ) : isEditing ? (
+              <div key={idx} className="space-y-2">
+                <input
+                  value={newValue}
+                  onChange={(e) => onChange(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-1 text-sm"
+                  placeholder={`Enter ${field.label.toLowerCase()}`}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onUpdate(field.field)}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={onCancel}
+                    className="px-3 py-1 bg-gray-300 text-sm rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                key={idx}
+                onClick={() => onEdit(field.field)}
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-all"
+              >
+                <FiPlus className="text-base" />
+                Add your {field.label.toLowerCase()}
+              </button>
+            );
+          })}
+
       </div>
     </motion.div>
   );
