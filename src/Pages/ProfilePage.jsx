@@ -53,20 +53,31 @@ function ProfilePage() {
   };
 
   const handleResumeUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file || file.type !== 'application/pdf') return alert('Only PDF files allowed');
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64Resume = reader.result;
-      try {
-        await updateDoc(doc(db, 'users', user.uid), { resumeUrl: base64Resume });
-        setProfile((prev) => ({ ...prev, resumeUrl: base64Resume }));
-      } catch (err) {
-        console.error('Resume upload failed:', err);
-      }
-    };
-    reader.readAsDataURL(file);
+  const file = e.target.files[0];
+  if (!file || file.type !== 'application/pdf') {
+    return alert('Only PDF files allowed');
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const rawBase64 = reader.result;
+
+    // Ensure MIME type is prefixed properly
+    const dataUrl = rawBase64.startsWith('data:application/pdf')
+      ? rawBase64
+      : `data:application/pdf;base64,${rawBase64.split(',')[1]}`;
+
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { resumeUrl: dataUrl });
+      setProfile((prev) => ({ ...prev, resumeUrl: dataUrl }));
+    } catch (err) {
+      console.error('Resume upload failed:', err);
+    }
   };
+
+  reader.readAsDataURL(file);
+};
+
 
   const handleFieldUpdate = async (field) => {
     if (!newValue.trim() || field === 'resumeUrl') return;
@@ -135,6 +146,7 @@ function ProfilePage() {
               fields={[
                 { label: 'GitHub', field: 'githubUrl', value: profile.githubUrl, isLink: true },
                 { label: 'LinkedIn', field: 'linkedinUrl', value: profile.linkedinUrl, isLink: true },
+                { label: 'Portfolio', field: 'portfolioUrl', value: profile.portfolioUrl, isLink: true },
                 {
                   label: 'Resume',
                   field: 'resumeUrl',
@@ -142,23 +154,32 @@ function ProfilePage() {
                   customElement: (
                     <div className="space-y-2">
                       {profile.resumeUrl && (
-                        <a
-                          href={profile.resumeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => {
+                            const newWindow = window.open();
+                            newWindow.document.write(`
+                              <html>
+                                <head><title>Resume Preview</title></head>
+                                <body style="margin:0">
+                                  <iframe src="${profile.resumeUrl}" frameborder="0" style="width:100%;height:100vh;"></iframe>
+                                </body>
+                              </html>
+                            `);
+                            newWindow.document.close();
+                          }}
                           className="text-sm text-blue-600 underline hover:text-blue-800 font-medium block"
                         >
                           View Current Resume
-                        </a>
+                        </button>
                       )}
+
                       <label className="text-sm text-gray-600 underline cursor-pointer block">
                         Upload New Resume
                         <input type="file" accept=".pdf" onChange={handleResumeUpload} className="hidden" />
                       </label>
                     </div>
                   ),
-                },
-                { label: 'Portfolio', field: 'portfolioUrl', value: profile.portfolioUrl, isLink: true },
+                }
               ]}
               editingField={editingField}
               newValue={newValue}
@@ -169,7 +190,7 @@ function ProfilePage() {
                 setEditingField(null);
                 setNewValue('');
               }}
-            />
+              />
 
             <ProfileCard
               title="⚡ Skills & Achievements"
