@@ -48,7 +48,7 @@ function RecruiterView() {
         <div className="mt-6 space-y-4">
           <section>
             <h3 className="font-semibold mb-1">Bio</h3>
-            <p>{profile.bio?.value || 'No bio available'}</p>
+            <p>{profile.bio || 'No bio available'}</p>
           </section>
 
           <section>
@@ -59,9 +59,9 @@ function RecruiterView() {
           <section>
             <h3 className="font-semibold mb-1">Links</h3>
             <ul className="list-disc list-inside">
-              {profile.githubUrl?.value && <li><a href={profile.githubUrl.value} target="_blank" className="text-blue-600 underline">GitHub</a></li>}
-              {profile.linkedinUrl?.value && <li><a href={profile.linkedinUrl.value} target="_blank" className="text-blue-600 underline">LinkedIn</a></li>}
-              {profile.portfolioUrl?.value && <li><a href={profile.portfolioUrl.value} target="_blank" className="text-blue-600 underline">Portfolio</a></li>}
+              {profile.githubUrl && <li><a href={profile.githubUrl} target="_blank" className="text-blue-600 underline">GitHub</a></li>}
+              {profile.linkedinUrl && <li><a href={profile.linkedinUrl} target="_blank" className="text-blue-600 underline">LinkedIn</a></li>}
+              {profile.portfolioUrl&& <li><a href={profile.portfolioUrl} target="_blank" className="text-blue-600 underline">Portfolio</a></li>}
               {profile.resumeUrl?.value && <li><a href={profile.resumeUrl.value} target="_blank" className="text-blue-600 underline">Resume</a></li>}
             </ul>
           </section>
