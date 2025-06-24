@@ -62,7 +62,7 @@ function RecruiterView() {
               {profile.githubUrl && <li><a href={profile.githubUrl} target="_blank" className="text-blue-600 underline">GitHub</a></li>}
               {profile.linkedinUrl && <li><a href={profile.linkedinUrl} target="_blank" className="text-blue-600 underline">LinkedIn</a></li>}
               {profile.portfolioUrl&& <li><a href={profile.portfolioUrl} target="_blank" className="text-blue-600 underline">Portfolio</a></li>}
-              {profile.resumeUrl?.value && <li><a href={profile.resumeUrl.value} target="_blank" className="text-blue-600 underline">Resume</a></li>}
+              {profile.resumeUrl && <li><a href={profile.resumeUrl} target="_blank" className="text-blue-600 underline">Resume</a></li>}
             </ul>
           </section>
         </div>
@@ -72,3 +72,4 @@ function RecruiterView() {
 }
 
 export default RecruiterView;
+
