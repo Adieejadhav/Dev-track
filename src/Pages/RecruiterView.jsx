@@ -22,6 +22,8 @@ function RecruiterView() {
     }
   };
 
+
+  // addin the comment 
   useEffect(() => {
     fetchPublicProfile();
   }, [uid]);
